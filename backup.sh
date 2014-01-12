@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PWD=`pwd`
+BASEPATH=$(cd `dirname $0`; pwd)
 
 function useage {
     echo ""
@@ -9,47 +9,35 @@ function useage {
 function day {
     if [ $# -eq 1 ]
     then
-        date "$1 days" +%Y%m%d
+        date -d "$1day ago" +%Y%m%d
     else
         date +%Y%m%d
     fi
 }
 
 function check {
-    if [ $# -lt 1 ]
-    then
-        return 0
-    fi 
-    if [[ $1 =~ ^[1-9][0-9]*$ ]]
-    then
-        return 1
-    fi 
+    [ $# -lt 1 ] && return 0
+    [[ $1 =~ ^[1-9][0-9]*$ ]] && return 1
     return 0
 }
 
 function upload {
-    mkdir -p /tmp/backup`day`
-    cd /tmp/backup`day`
     local filename
-    if [ $# -eq 1 ]
-    then
-        filename=`day`.`basename $1`.7z
-    elif [ $# -eq 2 ]
-    then
-        filename=`day`.$2.7z
-    fi
+    [ $# -eq 1 ] && filename=`day`.`basename $1`.7z
+    [ $# -eq 2 ] && filename=`day`.$2.7z
     7z a $filename $1
-    cd $PWD
-    ./dropbox_uploader.sh upload /tmp/backup`day`/$filename .
-    rm -rf /tmp/backup`day`
+    $BASEPATH/dropbox_uploader.sh upload /tmp/backup`day`/$filename .
 }
 
 function delete {
+    local halfname
+    [ $# -eq 2 ] && halfname=.`basename $2`.7z
+    [ $# -eq 3 ] && halfname=.$3.7z
+    $BASEPATH/dropbox_uploader.sh list | awk "\$3 ~ \"$halfname\" {print \$3}" > files1.txt
+    for((i=0;i<$1;++i)); do echo "`day $i`$halfname" >> files2.txt; done
+    grep -Fvxf <(grep -Fxf files1.txt files2.txt ) files1.txt files2.txt | awk -F ':' '$1=="files1.txt" {print $2}' > timeout_files.txt
+    for file in `cat timeout_files.txt`; do $BASEPATH/dropbox_uploader.sh delete $file; done 
 }
-
-DIR=
-day=
-filename=
 
 while getopts "D:d:f:" opt
 do
@@ -61,5 +49,11 @@ do
     esac
 done
 
-[   -d $DIR ] && upload $DIR $filename
-[ ! -n $day ] && delete $day $DIR $filename
+TEMPPATH=/tmp/backup`day`
+[ -d $TEMPPATH ] && rm -rf $TEMPPATH
+mkdir -p $TEMPPATH
+cd $TEMPPATH
+[ -d $DIR ] && upload $DIR $filename && [[ -n $day ]] && delete $day $DIR $filename
+cd $PWD
+rm -rf $TEMPPATH
+
