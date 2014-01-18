@@ -25,7 +25,7 @@ function upload {
     local filename
     [ $# -eq 1 ] && filename=`day`.`basename $1`.7z
     [ $# -eq 2 ] && filename=`day`.$2.7z
-    7z a $filename $1
+    7z a $filename $1 > /dev/null
     $BASEPATH/dropbox_uploader.sh upload /tmp/backup`day`/$filename .
 }
 
