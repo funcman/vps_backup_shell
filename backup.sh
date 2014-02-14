@@ -60,7 +60,7 @@ TEMPPATH=/tmp/backup`day`
 [ -d $TEMPPATH ] && rm -rf $TEMPPATH
 mkdir -p $TEMPPATH
 cd $TEMPPATH
-[ -d $DIR ] && upload $DIR $filename && [[ -n $day ]] && delete $day $DIR $filename
+[[ -n $DIR ]] && [ -d $DIR ] && upload $DIR $filename && [[ -n $day ]] && delete $day $DIR $filename
 cd $PWD
 rm -rf $TEMPPATH
 
