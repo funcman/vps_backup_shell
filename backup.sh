@@ -3,7 +3,14 @@
 BASEPATH=$(cd `dirname $0`; pwd)
 
 function useage {
+    echo "VPS Baskup Shell v0.1.1"
+    echo "funcman(hyq1986@gmail.com)"
     echo ""
+    echo "Usage: ./backup.sh -D full_path [-f package_name] [-d retention]"
+    echo "  -------- options --------"
+    echo "  -D      Specifies the directory for backup, must be full path."
+    echo "  -f      Name of the backup package."
+    echo "  -d      Retention period of the backup package."
 }
 
 function day {
